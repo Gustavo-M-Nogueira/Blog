@@ -1,7 +1,14 @@
+using Blog.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+//    "DefaultConnection": "Server=localhost,1443;Database=Blog;User ID=sa;Password=Pw123secure!;TrustServerCertificate=True",
+builder.Services.AddDbContext<ApplicationDbContext>(
+    options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
