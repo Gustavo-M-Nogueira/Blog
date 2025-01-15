@@ -1,0 +1,74 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model Blog.Models.Post
+
+@{
+ViewData["Title"] = "Create New Post";
+}
+
+<h1>Create New Post</h1>
+
+<!-- Display success or error messages -->
+@if (TempData["success"] != null)
+{
+<div class="alert alert-success">
+    @TempData["success"]
+</div>
+}
+
+@if (TempData["error"] != null)
+{
+<div class="alert alert-danger">
+    @TempData["error"]
+</div>
+}
+
+<!-- Display general validation errors -->
+@if (!ViewData.ModelState.IsValid)
+{
+<div class="alert alert-warning">
+    <strong>Please correct the following errors:</strong>
+    <ul>
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+        <li>@error.ErrorMessage</li>
+        }
+    </ul>
+</div>
+}
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label">Title</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Content" class="form-label">Content</label>
+        <textarea asp-for="Content" class="form-control" rows="10"></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+
+    <!-- Category dropdown -->
+    <div class="mb-3">
+        <label for="CategoryId" class="form-label">Category</label>
+        <select asp-for="CategoryId" class="form-select">
+            <option value="">Select Category</option>
+            @foreach (var category in (List<Blog.Models.Category>)ViewData["Categories"])
+            {
+            <option value="@category.Id">@category.Name</option>
+            }
+        </select>
+        <span asp-validation-for="CategoryId" class="text-danger"></span>
+    </div>
+
+    <!-- Hidden field for UserId (Automatically passed from Identity) -->
+    <input type="hidden" asp-for="UserId" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)" />
+
+    <button type="submit" class="btn btn-primary">Create Post</button>
+</form>
+
+@section Scripts {
+@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
