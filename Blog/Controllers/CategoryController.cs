@@ -1,12 +1,15 @@
 using System.Runtime.InteropServices.JavaScript;
 using Blog.Data;
 using Blog.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blog.Controllers;
 
+// [Authorize(Roles = Role.Admin)]
 public class CategoryController : Controller
 {
+    
     private readonly ApplicationDbContext _db;
     public CategoryController(ApplicationDbContext db)
     {

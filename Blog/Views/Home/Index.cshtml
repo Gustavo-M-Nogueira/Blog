@@ -1,8 +1,141 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@model IEnumerable<Blog.Models.Post>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<head>
+    <link rel="stylesheet" href="~/css/home.css" />
+</head>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-2">
+            <h4>Filters</h4>
+            <form asp-action="Index" method="get">
+                <div class="mb-3">
+                    <label for="yearFilter" class="form-label">Year</label>
+                    <div id="yearFilter">
+                        <label><input type="checkbox" name="year" value="" @(ViewBag.SelectedYears == null || !((List<string>)ViewBag.SelectedYears).Any(y => !string.IsNullOrEmpty(y)) ? "checked" : "") /> All</label><br />
+                        @foreach (var year in ViewBag.Years)
+                        {
+                        <label><input type="checkbox" name="year" value="@year" @(ViewBag.SelectedYears != null && ((List<string>)ViewBag.SelectedYears).Contains(year.ToString()) ? "checked" : "") /> @year</label><br />
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="categoryFilter" class="form-label">Category</label>
+                    <div id="categoryFilter">
+                        <label><input type="checkbox" name="categoryId" value="" @(ViewBag.SelectedCategories == null || !((List<string>)ViewBag.SelectedCategories).Any() ? "checked" : "") /> All</label><br />
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                        <label><input type="checkbox" name="categoryId" value="@category.Id" @(ViewBag.SelectedCategories != null && ((List<string>)ViewBag.SelectedCategories).Contains(category.Id.ToString()) ? "checked" : "") /> @category.Name</label><br />
+                        }
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </form>
+        </div>
+
+        <div class="col-md-7">
+            <div class="mb-4">
+                <form asp-action="Index" method="get">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search posts..." name="searchQuery" value="@ViewBag.SearchQuery" />
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
+
+                    <!-- Hidden fields to retain filters when search is applied -->
+                    @if (ViewBag.SelectedYears != null)
+                    {
+                        @foreach (var year in ViewBag.SelectedYears)
+                        {
+                            <input type="hidden" name="year" value="@year" />
+                        }
+                    }
+
+                    @if (ViewBag.SelectedCategories != null)
+                    {
+                        @foreach (var category in ViewBag.SelectedCategories)
+                        {
+                            <input type="hidden" name="categoryId" value="@category" />
+                        }
+                    }
+                </form>
+            </div>
+
+            @if (User.Identity.IsAuthenticated)
+            {
+            <div class="mb-4">
+                <a href="@Url.Action("Create", "Post")" class="btn btn-success">Add New Post</a>
+            </div>
+            }
+
+            <h2>Posts</h2>
+            <div class="list-group">
+                @if (!Model.Any())
+                {
+                <p>No posts found.</p>
+                }
+                else
+                {
+                @foreach (var post in Model)
+                {
+                <a href="@Url.Action("Details", "Post", new { id = post.Id })" class="list-group-item list-group-item-action">
+                    <h5>@post.Title</h5>
+                    <p>@post.Content.Substring(0, Math.Min(100, post.Content.Length))...</p>
+                    <small>@post.CreatedAt.ToString("dd/MM/yyyy")</small>
+                </a>
+                }
+                }
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAllYearCheckbox = document.querySelector('input[name="year"][value=""]');
+        const yearCheckboxes = document.querySelectorAll('input[name="year"]:not([value=""])');
+
+        const selectAllCategoryCheckbox = document.querySelector('input[name="categoryId"][value=""]');
+        const categoryCheckboxes = document.querySelectorAll('input[name="categoryId"]:not([value=""])');
+
+        // Ensure "All" for year remains checked if no other years are selected
+        function checkAllYearStatus() {
+            const anyYearSelected = Array.from(yearCheckboxes).some(checkbox => checkbox.checked);
+            selectAllYearCheckbox.checked = !anyYearSelected;
+        }
+
+        selectAllYearCheckbox.addEventListener('change', function () {
+            if (selectAllYearCheckbox.checked) {
+                yearCheckboxes.forEach(checkbox => checkbox.checked = false);
+            }
+        });
+
+        yearCheckboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                if (this.checked) {
+                    selectAllYearCheckbox.checked = false;
+                }
+                checkAllYearStatus();
+            });
+        });
+
+        // Restore the original behavior for "All" in category selection
+        selectAllCategoryCheckbox.addEventListener('change', function () {
+            if (selectAllCategoryCheckbox.checked) {
+                categoryCheckboxes.forEach(checkbox => checkbox.checked = false);
+            }
+        });
+
+        categoryCheckboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                if (this.checked) {
+                    selectAllCategoryCheckbox.checked = false;
+                }
+            });
+        });
+
+        // Initial check on page load
+        checkAllYearStatus();
+    });
+</script>
