@@ -1,0 +1,71 @@
+@model Blog.Models.Post
+
+@{
+ViewData["Title"] = "Post Details";
+
+var currentUserId = ViewData["CurrentUserId"] as string;
+var isAdmin = ViewData["IsAdmin"] as bool? ?? false;
+}
+
+<style>
+    .post-title {
+        text-align: center;
+        font-size: 2em;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .post-content {
+        font-size: 1.2em;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .post-created {
+        text-align: right;
+        font-style: italic;
+        color: gray;
+        margin-bottom: 30px;
+    }
+
+    .btn-back {
+        display: inline-block;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="post-title">@Model.Title</div>
+
+<div class="post-content">
+    <p>@Model.Content</p>
+</div>
+
+<div>
+    <strong>Author:</strong>
+    <p>@Model.User.Email</p>
+</div>
+
+<div class="post-created">
+    @if (Model.UpdatedAt != null)
+    {
+    <span>Edited at: @Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+    }
+    else
+    {
+    <span>Created on: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+    }
+</div>
+
+<div class="btn-back">
+    <button onclick="history.back();" class="btn btn-secondary">Back</button>
+</div>
+
+<div>
+    @if (isAdmin || Model.UserId == currentUserId)
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this post?');">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">Delete</button>
+    </form>    }
+</div>
